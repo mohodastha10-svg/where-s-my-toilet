@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard - Toilet Demand Hotspots</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 400px; width: 100%; margin-top: 20px; }
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .signal-item { border-bottom: 1px solid #eee; padding: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🚨 Municipal Grievance Portal</h1>
+        <p>The following areas have high demand for public toilets based on citizen search failures.</p>
+        
+        <div id="hotspot-summary">
+            <strong>Total Active Grievances: <span id="count">0</span></strong>
+        </div>
+
+        <div id="map"></div>
+
+        <div id="signal-list">
+            <h3>Recent Demand Signals:</h3>
+            </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Connect to your Backend Layer 2
+        async function loadGrievances() {
+            const response = await fetch('http://localhost:3000/api/signals');
+            const data = await response.json();
+            
+            document.getElementById('count').innerText = data.totalSignals;
+
+            // Initialize Map (Nagpur center)
+            var map = L.map('map').setView([21.145, 79.088], 13);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+            // Show each signal as a "Grievance" on the map
+            data.data.forEach(signal => {
+                L.marker([21.145, 79.088]).addTo(map)
+                    .bindPopup(`<b>Grievance #${signal.id}</b><br>Demand captured in Nagpur Grid.`);
+                
+                const div = document.createElement('div');
+                div.className = 'signal-item';
+                div.innerHTML = `<b>ID: ${signal.id}</b> - Location: Nagpur - Time: ${signal.timestamp}`;
+                document.getElementById('signal-list').appendChild(div);
+            });
+        }
+        loadGrievances();
+    </script>
+</body>
+</html>
